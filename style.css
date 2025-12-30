@@ -1,0 +1,119 @@
+:root {
+    --bg-color: #000000;
+    --card-color: #1C1C1E;
+    --text-primary: #FFFFFF;
+    --text-secondary: #8E8E93;
+    --accent-color: #30D158; /* Apple Fitness Green */
+    --danger-color: #FF453A;
+    --separator: #38383A;
+    --radius: 12px;
+    --btn-radius: 40px;
+}
+
+* { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-primary);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    margin: 0;
+    padding: 0;
+    padding-bottom: 40px; /* Safe area */
+    min-height: 100vh;
+}
+
+/* Tipografia e Layout */
+h1, h2, h3 { margin: 0; font-weight: 700; }
+h1 { font-size: 34px; letter-spacing: 0.3px; margin-bottom: 20px; }
+h2 { font-size: 22px; margin-bottom: 15px; }
+p { color: var(--text-secondary); line-height: 1.5; font-size: 15px; }
+
+.container {
+    padding: 20px;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+/* Views Management */
+.view { display: none; animation: fadeIn 0.3s ease; }
+.view.active { display: block; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+/* UI Components */
+.card {
+    background-color: var(--card-color);
+    border-radius: var(--radius);
+    padding: 20px;
+    margin-bottom: 16px;
+}
+
+.btn {
+    background-color: var(--accent-color);
+    color: #000;
+    border: none;
+    width: 100%;
+    padding: 16px;
+    border-radius: var(--radius);
+    font-size: 17px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: opacity 0.2s;
+    text-align: center;
+}
+.btn:active { opacity: 0.7; }
+.btn-secondary { background-color: var(--card-color); color: var(--accent-color); margin-top: 10px; }
+.btn-danger { background-color: rgba(255, 69, 58, 0.15); color: var(--danger-color); }
+
+input, select, textarea {
+    width: 100%;
+    background-color: #2C2C2E;
+    border: none;
+    color: white;
+    padding: 14px;
+    border-radius: 8px;
+    font-size: 16px;
+    margin-bottom: 15px;
+    font-family: inherit;
+}
+
+textarea { height: 120px; resize: none; }
+select { -webkit-appearance: none; appearance: none; }
+
+/* Inputs específicos de treino */
+.exercise-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    border-bottom: 1px solid var(--separator);
+    padding: 15px 0;
+}
+.exercise-row:last-child { border-bottom: none; }
+
+.input-group {
+    display: flex;
+    gap: 10px;
+    margin-top: 10px;
+}
+.mini-input {
+    width: 50%;
+    text-align: center;
+    margin-bottom: 0;
+}
+
+/* Estatísticas */
+.stat-box {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+}
+.stat-value { font-size: 32px; font-weight: 700; color: var(--accent-color); }
+.stat-label { font-size: 14px; color: var(--text-secondary); text-transform: uppercase; }
+
+/* Navigation */
+.nav-back {
+    color: var(--accent-color);
+    font-size: 17px;
+    margin-bottom: 20px;
+    display: inline-block;
+    cursor: pointer;
+}
