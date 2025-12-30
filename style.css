@@ -28,15 +28,14 @@ p { color: var(--text-secondary); font-size: 15px; margin: 0 0 10px 0; }
 
 .container { padding: 20px; max-width: 600px; margin: 0 auto; }
 
-/* Views Management */
+/* --- CORREÇÃO DO BUG DA TELA PRETA --- */
 .view { display: none; }
-.view.active { animation: fadeIn 0.3s ease; }
+.view.active { display: block; animation: fadeIn 0.3s ease; }
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
 /* Cards & Buttons */
 .card { background-color: var(--card-color); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; }
 
-/* CORREÇÃO BOTÃO INICIAR DESFORMATADO */
 .workout-item {
     display: flex;
     justify-content: space-between;
@@ -74,11 +73,10 @@ input, select, textarea {
 }
 textarea { height: 100px; resize: none; }
 
-/* Navegação */
 .nav-back { color: var(--accent-color); font-size: 17px; margin-bottom: 15px; display: inline-block; cursor: pointer; }
 .nav-footer { display: flex; justify-content: space-between; margin-top: auto; padding-top: 20px; }
 
-/* --- ESTILO DE EXECUÇÃO DE TREINO --- */
+/* Treino */
 .exercise-title { color: var(--accent-color); font-size: 26px; margin-bottom: 10px; line-height: 1.2; }
 .meta-tags { display: flex; gap: 10px; margin-bottom: 15px; }
 .tag { background: #333; padding: 6px 12px; border-radius: 6px; font-size: 13px; font-weight: 600; }
@@ -103,7 +101,6 @@ textarea { height: 100px; resize: none; }
 
 .set-number { width: 30px; font-weight: bold; color: var(--text-secondary); text-align: center; font-size: 14px; }
 
-/* Inputs pequenos da linha */
 .input-cell { width: 32%; position: relative; }
 .input-cell input { 
     margin: 0; text-align: center; padding: 10px 25px 10px 5px; 
@@ -116,7 +113,6 @@ textarea { height: 100px; resize: none; }
     color: var(--text-secondary); font-size: 11px; pointer-events: none;
 }
 
-/* Botão de Toggle (Peso Corporal) */
 .toggle-btn {
     background: transparent; border: 1px solid var(--text-secondary);
     color: var(--text-secondary); padding: 8px 12px; border-radius: 20px;
@@ -125,7 +121,6 @@ textarea { height: 100px; resize: none; }
 }
 .toggle-btn.active { background: var(--accent-color); color: black; border-color: var(--accent-color); font-weight: bold; }
 
-/* Stats */
 .stat-box { display: flex; justify-content: space-between; align-items: baseline; }
 .stat-value { font-size: 32px; font-weight: 700; color: var(--accent-color); }
 .stat-label { font-size: 14px; color: var(--text-secondary); text-transform: uppercase; }
