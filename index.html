@@ -3,61 +3,50 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#000000">
     <link rel="manifest" href="manifest.json">
-
     <title>FitFlow</title>
-    
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
     <div id="view-home" class="view active container">
         <h1>Meus Treinos</h1>
-        
         <div id="no-plan-state" style="display:none; text-align: center; margin-top: 50px;">
             <p>Você ainda não tem um plano ativo.</p>
             <button class="btn" onclick="navigateTo('view-create')">Criar Novo Plano com IA</button>
         </div>
-
         <div id="plan-dashboard" style="display:none;">
             <div class="card">
                 <h2 id="program-title">Carregando...</h2>
                 <p id="program-desc">Seu plano personalizado.</p>
             </div>
-
             <h3>Próximos Treinos</h3>
             <div id="days-list"></div>
-
-            <button class="btn btn-secondary" onclick="navigateTo('view-create')">Gerar/Importar Novo Plano</button>
+            <button class="btn btn-secondary" onclick="navigateTo('view-create')">Gerar Novo Plano</button>
             <button class="btn btn-danger" style="margin-top: 20px;" onclick="resetApp()">Resetar App</button>
         </div>
     </div>
 
     <div id="view-create" class="view container">
-        <span class="nav-back" onclick="navigateTo('view-home')">Cancel</span>
+        <span class="nav-back" onclick="navigateTo('view-home')">Cancelar</span>
         <h1>Configurar IA</h1>
-        <p>Preencha os dados para criar o prompt para o Gemini.</p>
-
         <div class="card">
             <label>Objetivo</label>
             <select id="goal">
-                <option value="Hipertrofia (Ganho de Massa)">Hipertrofia</option>
+                <option value="Hipertrofia">Hipertrofia</option>
                 <option value="Força Pura">Força</option>
-                <option value="Perda de Gordura">Emagrecimento</option>
-                <option value="Condicionamento">Resistência</option>
+                <option value="Emagrecimento">Emagrecimento</option>
+                <option value="Flexibilidade e Mobilidade">Flexibilidade</option>
             </select>
-
             <label>Nível</label>
             <select id="level">
                 <option value="Iniciante">Iniciante</option>
                 <option value="Intermediário">Intermediário</option>
                 <option value="Avançado">Avançado</option>
             </select>
-
             <label>Dias por semana</label>
             <select id="days">
                 <option value="3">3 Dias</option>
@@ -65,70 +54,64 @@
                 <option value="5">5 Dias</option>
                 <option value="6">6 Dias</option>
             </select>
-
-            <label>Foco Específico (Opcional)</label>
-            <input type="text" id="focus" placeholder="Ex: Peitoral superior, Glúteos...">
+            <label>Foco Específico</label>
+            <input type="text" id="focus" placeholder="Ex: Glúteos, Peito, Postura...">
         </div>
-
-        <button class="btn" onclick="generatePrompt()">Gerar Texto do Prompt</button>
+        <button class="btn" onclick="generatePrompt()">Gerar Prompt</button>
     </div>
 
     <div id="view-import" class="view container">
         <span class="nav-back" onclick="navigateTo('view-create')">Voltar</span>
-        <h1>Passo a Passo</h1>
-        
+        <h1>Importar</h1>
         <div class="card">
-            <h2>1. Copie este texto</h2>
+            <h2>1. Copie o Prompt</h2>
             <textarea id="prompt-output" readonly></textarea>
-            <button class="btn btn-secondary" onclick="copyToClipboard()">Copiar Texto</button>
+            <button class="btn btn-secondary" onclick="copyToClipboard()">Copiar</button>
         </div>
-
         <div class="card">
-            <h2>2. Cole no Gemini</h2>
-            <p>Vá ao app do Gemini, cole o texto e aguarde ele gerar o código.</p>
-        </div>
-
-        <div class="card">
-            <h2>3. Cole a resposta aqui</h2>
-            <p>Cole APENAS o JSON que o Gemini gerou abaixo.</p>
-            <textarea id="json-input" placeholder='{ "programName": "..." }'></textarea>
-            <button class="btn" onclick="processJSON()">Importar Treino</button>
+            <h2>2. Cole a Resposta JSON</h2>
+            <textarea id="json-input" placeholder=' Cole o código aqui...'></textarea>
+            <button class="btn" onclick="processJSON()">Criar Treino</button>
         </div>
     </div>
 
-    <div id="view-workout" class="view container">
-        <span class="nav-back" onclick="navigateTo('view-home')">Fechar</span>
-        <h1 id="workout-day-title">Treino A</h1>
+    <div id="view-workout" class="view container" style="display:none; height: 100vh; flex-direction: column;">
         
-        <div id="workout-exercises"></div>
+        <div style="margin-bottom: 20px;">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+                <span class="nav-back" onclick="confirmExit()">Sair</span>
+                <span id="step-counter" style="color: var(--text-secondary); font-size: 14px;">1 / 6</span>
+            </div>
+            <div style="width: 100%; height: 4px; background: #333; border-radius: 2px; margin-top: 5px;">
+                <div id="progress-bar" style="width: 0%; height: 100%; background: var(--accent-color); border-radius: 2px; transition: width 0.3s;"></div>
+            </div>
+        </div>
 
-        <button class="btn" onclick="finishWorkout()">Finalizar Treino</button>
+        <div id="exercise-card-container" style="flex: 1; overflow-y: auto;">
+            </div>
+
+        <div class="nav-footer">
+            <button class="btn btn-secondary" id="btn-prev" onclick="prevExercise()" style="width: 48%;">Anterior</button>
+            <button class="btn" id="btn-next" onclick="nextExercise()" style="width: 48%;">Próximo</button>
+        </div>
     </div>
 
     <div id="view-summary" class="view container">
         <div style="text-align: center; margin-top: 40px;">
-            <div style="width: 80px; height: 80px; background: #30D158; border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center;">
+            <div style="width: 80px; height: 80px; background: var(--accent-color); border-radius: 50%; margin: 0 auto 20px; display: flex; align-items: center; justify-content: center;">
                 <svg width="40" height="40" fill="black" viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
             </div>
             <h1>Treino Concluído!</h1>
         </div>
-
         <div class="card">
             <div class="stat-box">
-                <div>
-                    <div class="stat-label">Volume Total</div>
-                    <div class="stat-value" id="summary-volume">0 kg</div>
-                </div>
+                <div><div class="stat-label">Volume Total</div><div class="stat-value" id="summary-volume">0 kg</div></div>
             </div>
-            <hr style="border: 0; border-top: 1px solid var(--separator); margin: 15px 0;">
+            <hr style="border:0; border-top:1px solid var(--separator); margin:15px 0;">
             <div class="stat-box">
-                <div>
-                    <div class="stat-label">Exercícios</div>
-                    <div class="stat-value" id="summary-exercises">0</div>
-                </div>
+                <div><div class="stat-label">Séries Feitas</div><div class="stat-value" id="summary-sets">0</div></div>
             </div>
         </div>
-
         <button class="btn" onclick="navigateTo('view-home')">Voltar ao Início</button>
     </div>
 
