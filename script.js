@@ -13,14 +13,18 @@ window.onload = () => {
         try {
             currentPlan = JSON.parse(savedPlan);
             renderHome();
+            navigateTo('view-home'); // Adicionei esta linha para forçar a aparição
         } catch (e) {
             console.error("Erro ao carregar plano salvo", e);
-            localStorage.removeItem('fitflow_plan'); // Limpa se estiver corrompido
+            localStorage.removeItem('fitflow_plan');
+            navigateTo('view-home');
         }
     } else {
         document.getElementById('no-plan-state').style.display = 'block';
+        navigateTo('view-home');
     }
 };
+
 
 function navigateTo(viewId) {
     // Esconde todas as views
