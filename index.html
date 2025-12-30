@@ -39,7 +39,7 @@
                 <option value="Hipertrofia">Hipertrofia</option>
                 <option value="Força Pura">Força</option>
                 <option value="Emagrecimento">Emagrecimento</option>
-                <option value="Flexibilidade e Mobilidade">Flexibilidade</option>
+                <option value="Flexibilidade">Flexibilidade</option>
             </select>
             <label>Nível</label>
             <select id="level">
@@ -75,19 +75,18 @@
         </div>
     </div>
 
-    <div id="view-workout" class="view container" style="display:none; height: 100vh; flex-direction: column;">
-        
+    <div id="view-workout" class="view container" style="height: 100vh;">
         <div style="margin-bottom: 20px;">
             <div style="display:flex; justify-content:space-between; align-items:center;">
                 <span class="nav-back" onclick="confirmExit()">Sair</span>
-                <span id="step-counter" style="color: var(--text-secondary); font-size: 14px;">1 / 6</span>
+                <span id="step-counter" style="color: var(--text-secondary); font-size: 14px;">1 / 1</span>
             </div>
             <div style="width: 100%; height: 4px; background: #333; border-radius: 2px; margin-top: 5px;">
                 <div id="progress-bar" style="width: 0%; height: 100%; background: var(--accent-color); border-radius: 2px; transition: width 0.3s;"></div>
             </div>
         </div>
 
-        <div id="exercise-card-container" style="flex: 1; overflow-y: auto;">
+        <div id="exercise-card-container" style="flex: 1; overflow-y: auto; padding-bottom: 20px;">
             </div>
 
         <div class="nav-footer">
