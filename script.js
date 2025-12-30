@@ -3,27 +3,46 @@ let currentPlan = null;
 let workoutSession = {
     dayIndex: 0,
     currentExerciseIndex: 0,
-    data: [] // Armazena o que o usuário fez: [{ name: 'Supino', sets: [{weight: 20, reps: 10}, ...] }]
+    data: [] 
 };
 
 // INICIALIZAÇÃO
 window.onload = () => {
     const savedPlan = localStorage.getItem('fitflow_plan');
     if (savedPlan) {
-        currentPlan = JSON.parse(savedPlan);
-        renderHome();
+        try {
+            currentPlan = JSON.parse(savedPlan);
+            renderHome();
+        } catch (e) {
+            console.error("Erro ao carregar plano salvo", e);
+            localStorage.removeItem('fitflow_plan'); // Limpa se estiver corrompido
+        }
     } else {
         document.getElementById('no-plan-state').style.display = 'block';
     }
 };
 
 function navigateTo(viewId) {
-    document.querySelectorAll('.view').forEach(el => el.classList.remove('active'));
-    document.getElementById(viewId).classList.add('active');
+    // Esconde todas as views
+    document.querySelectorAll('.view').forEach(el => {
+        el.classList.remove('active');
+        el.style.display = 'none'; // Garante que suma
+    });
+    
+    // Mostra a desejada
+    const activeEl = document.getElementById(viewId);
+    activeEl.classList.add('active');
+    
+    // Ajuste específico para layout flex da tela de treino
+    if(viewId === 'view-workout') {
+        activeEl.style.display = 'flex';
+    } else {
+        activeEl.style.display = 'block';
+    }
     window.scrollTo(0,0);
 }
 
-// 1. GERAR PROMPT (AJUSTADO PARA PEDIR ORDEM CORRETA)
+// 1. GERAR PROMPT
 function generatePrompt() {
     const goal = document.getElementById('goal').value;
     const level = document.getElementById('level').value;
@@ -69,8 +88,11 @@ function copyToClipboard() {
 
 function processJSON() {
     try {
-        const input = document.getElementById('json-input').value.replace(/```json/g, '').replace(/```/g, '').trim();
-        const plan = JSON.parse(input);
+        const rawInput = document.getElementById('json-input').value;
+        // Limpeza agressiva para garantir JSON puro
+        const cleanJson = rawInput.replace(/```json/g, '').replace(/```/g, '').trim();
+        
+        const plan = JSON.parse(cleanJson);
         if(!plan.schedule) throw new Error("JSON sem cronograma");
         
         currentPlan = plan;
@@ -78,7 +100,7 @@ function processJSON() {
         renderHome();
         navigateTo('view-home');
     } catch (e) {
-        alert("JSON inválido. Tente novamente.");
+        alert("Erro no JSON: " + e.message + "\nCertifique-se de copiar APENAS o código.");
     }
 }
 
@@ -90,15 +112,17 @@ function renderHome() {
 
     const list = document.getElementById('days-list');
     list.innerHTML = '';
+    
     currentPlan.schedule.forEach((day, idx) => {
+        // Correção do botão desformatado: Agora é um item de lista clicável e limpo
         list.innerHTML += `
-            <div class="card" onclick="startWorkout(${idx})">
-                <div style="display:flex; justify-content:space-between; align-items:center;">
-                    <div>
-                        <h3 style="color:white; margin-bottom:5px;">${day.dayName}</h3>
-                        <p style="margin:0; font-size:13px;">${day.exercises.length} Exercícios</p>
-                    </div>
-                    <span style="color:var(--accent-color);">Iniciar ></span>
+            <div class="card workout-item" onclick="startWorkout(${idx})">
+                <div class="workout-info">
+                    <h3>${day.dayName}</h3>
+                    <p>${day.exercises.length} Exercícios</p>
+                </div>
+                <div class="workout-action">
+                    <span class="btn-icon">▶</span>
                 </div>
             </div>`;
     });
@@ -111,84 +135,125 @@ function resetApp() {
     }
 }
 
-// --- LOGICA DE TREINO (CORE) ---
+// --- LOGICA DE TREINO (CORE FIX) ---
 
 function startWorkout(dayIdx) {
-    workoutSession = {
-        dayIndex: dayIdx,
-        currentExerciseIndex: 0,
-        data: [] 
-    };
-    navigateTo('view-workout');
-    renderActiveExercise();
+    try {
+        workoutSession = {
+            dayIndex: dayIdx,
+            currentExerciseIndex: 0,
+            data: [] 
+        };
+        navigateTo('view-workout');
+        
+        // Pequeno delay para garantir que o DOM renderizou o container
+        setTimeout(() => renderActiveExercise(), 50);
+    } catch (e) {
+        alert("Erro ao iniciar treino: " + e.message);
+    }
 }
 
 function renderActiveExercise() {
     const day = currentPlan.schedule[workoutSession.dayIndex];
+    
+    // Verificação de segurança
+    if (!day || !day.exercises) {
+        alert("Erro nos dados do treino.");
+        return;
+    }
+
     const exercise = day.exercises[workoutSession.currentExerciseIndex];
     const totalExercises = day.exercises.length;
     
     // Atualiza Barra de Progresso
-    const progress = ((workoutSession.currentExerciseIndex) / totalExercises) * 100;
+    const progress = ((workoutSession.currentExerciseIndex + 1) / totalExercises) * 100;
     document.getElementById('progress-bar').style.width = `${progress}%`;
-    document.getElementById('step-counter').innerText = `${workoutSession.currentExerciseIndex + 1} de ${totalExercises}`;
+    document.getElementById('step-counter').innerText = `${workoutSession.currentExerciseIndex + 1} / ${totalExercises}`;
 
     // Atualiza Botões
     const btnNext = document.getElementById('btn-next');
     btnNext.innerText = (workoutSession.currentExerciseIndex === totalExercises - 1) ? "Finalizar" : "Próximo";
-    document.getElementById('btn-prev').style.visibility = (workoutSession.currentExerciseIndex === 0) ? "hidden" : "visible";
+    
+    const btnPrev = document.getElementById('btn-prev');
+    btnPrev.style.visibility = (workoutSession.currentExerciseIndex === 0) ? "hidden" : "visible";
 
-    // Recupera dados já preenchidos (se o usuário voltou) ou cria novos
-    let exData = workoutSession.data[workoutSession.currentExerciseIndex];
-    if (!exData) {
-        // Parse "3" ou "3-4" para inteiro. Default 3.
-        let numSets = parseInt(exercise.sets) || 3; 
-        exData = {
+    // INICIALIZAÇÃO DOS DADOS (CORREÇÃO DE BUG DE REFERÊNCIA)
+    if (!workoutSession.data[workoutSession.currentExerciseIndex]) {
+        // Tenta converter sets para número, se falhar usa 3
+        let numSets = 3;
+        if(exercise.sets) {
+            // Remove letras, pega só o primeiro número. Ex: "3-4" vira 3.
+            const cleanSets = exercise.sets.toString().match(/\d+/);
+            if(cleanSets) numSets = parseInt(cleanSets[0]);
+        }
+
+        // CRUCIAL: Array.from cria objetos INDEPENDENTES para cada série
+        workoutSession.data[workoutSession.currentExerciseIndex] = {
             name: exercise.name,
-            sets: Array(numSets).fill({ weight: '', reps: '', completed: false, isBodyweight: false })
+            isBodyweight: false,
+            sets: Array.from({ length: numSets }, () => ({
+                weight: '', 
+                reps: '', // Inicializa vazio para o usuário preencher
+                completed: false
+            }))
         };
-        workoutSession.data[workoutSession.currentExerciseIndex] = exData;
     }
+
+    const exData = workoutSession.data[workoutSession.currentExerciseIndex];
 
     // Renderiza HTML do Card
     const container = document.getElementById('exercise-card-container');
     container.innerHTML = `
-        <div class="card">
-            <h1 style="color: var(--accent-color); font-size: 28px;">${exercise.name}</h1>
-            <div style="margin-bottom: 20px;">
-                <span style="background:#333; padding:4px 10px; border-radius:4px; font-size:13px; margin-right:10px;">Meta: ${exercise.sets} Séries</span>
-                <span style="background:#333; padding:4px 10px; border-radius:4px; font-size:13px;">Reps: ${exercise.reps}</span>
-            </div>
-            <p style="font-style: italic; opacity: 0.8;">"${exercise.notes || 'Sem observações.'}"</p>
+        <div class="card exercise-card-content">
+            <h1 class="exercise-title">${exercise.name}</h1>
             
-            <button class="toggle-btn" id="bw-toggle" onclick="toggleBodyweight()">
-                ${exData.isBodyweight ? '◉ Usando Peso do Corpo' : '○ Usar Peso do Corpo (Sem Carga)'}
+            <div class="meta-tags">
+                <span class="tag">Meta: ${exercise.sets} Séries</span>
+                <span class="tag">Reps: ${exercise.reps}</span>
+            </div>
+            
+            <div class="notes-box">
+                <p>💡 ${exercise.notes || 'Sem observações.'}</p>
+            </div>
+            
+            <button class="toggle-btn ${exData.isBodyweight ? 'active' : ''}" onclick="toggleBodyweight()">
+                ${exData.isBodyweight ? '◉ Peso do Corpo Ativo' : '○ Usar Peso do Corpo'}
             </button>
 
-            <div id="sets-container">
-                </div>
+            <div id="sets-container"></div>
         </div>
     `;
 
     // Renderiza as linhas de Sets
     const setsContainer = document.getElementById('sets-container');
+    
     exData.sets.forEach((set, idx) => {
+        // CORREÇÃO: Usar type="text" e inputmode="decimal" aceita "12-15" ou números, sem bugar em mobile
         const isBw = exData.isBodyweight;
+        
         setsContainer.innerHTML += `
             <div class="set-row" id="row-${idx}">
-                <div class="check-container ${set.completed ? 'checked' : ''}" onclick="toggleCheck(${idx})">
-                    <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                <div class="check-col">
+                    <div class="check-container ${set.completed ? 'checked' : ''}" onclick="toggleCheck(${idx})">
+                        <svg viewBox="0 0 24 24"><path d="M9 16.17L4.83 12l-1.42 1.41L9 19 21 7l-1.41-1.41z"/></svg>
+                    </div>
                 </div>
+                
                 <div class="set-number">#${idx + 1}</div>
                 
                 <div class="input-cell">
-                    <input type="number" id="weight-${idx}" placeholder="-" value="${set.weight}" 
-                           onchange="saveInput(${idx})" ${isBw ? 'disabled style="opacity:0.3"' : ''}>
+                    <input type="text" inputmode="decimal" id="weight-${idx}" placeholder="kg" 
+                           value="${set.weight}" 
+                           oninput="saveInput(${idx})" 
+                           ${isBw ? 'disabled' : ''} 
+                           class="${isBw ? 'disabled-input' : ''}">
                     <span class="input-label">Kg</span>
                 </div>
                 
                 <div class="input-cell">
-                    <input type="number" id="reps-${idx}" placeholder="-" value="${set.reps}" onchange="saveInput(${idx})">
+                    <input type="text" inputmode="text" id="reps-${idx}" placeholder="${exercise.reps}" 
+                           value="${set.reps}" 
+                           oninput="saveInput(${idx})">
                     <span class="input-label">Reps</span>
                 </div>
             </div>
@@ -198,27 +263,16 @@ function renderActiveExercise() {
 
 function toggleBodyweight() {
     const idx = workoutSession.currentExerciseIndex;
-    const currentStatus = workoutSession.data[idx].isBodyweight;
-    
-    // Inverte o status
-    workoutSession.data[idx].isBodyweight = !currentStatus;
-    
-    // Limpa pesos se for bodyweight
-    if (!currentStatus) {
-        workoutSession.data[idx].sets.forEach(s => s.weight = 0);
-    }
-    
-    // Re-renderiza para aplicar mudanças visuais
-    renderActiveExercise();
+    workoutSession.data[idx].isBodyweight = !workoutSession.data[idx].isBodyweight;
+    renderActiveExercise(); // Re-renderiza para bloquear/desbloquear inputs
 }
 
 function toggleCheck(setIdx) {
     const exIdx = workoutSession.currentExerciseIndex;
     const set = workoutSession.data[exIdx].sets[setIdx];
-    
     set.completed = !set.completed;
     
-    // Visual update apenas da classe
+    // Atualização visual rápida sem re-renderizar tudo
     const checkBtn = document.querySelector(`#row-${setIdx} .check-container`);
     if(set.completed) checkBtn.classList.add('checked');
     else checkBtn.classList.remove('checked');
@@ -234,9 +288,7 @@ function saveInput(setIdx) {
 }
 
 function nextExercise() {
-    // Salva estado atual visualmente (já salvo no onchange, mas por segurança)
     const dayData = currentPlan.schedule[workoutSession.dayIndex];
-    
     if (workoutSession.currentExerciseIndex < dayData.exercises.length - 1) {
         workoutSession.currentExerciseIndex++;
         renderActiveExercise();
@@ -267,8 +319,9 @@ function finishWorkout() {
             ex.sets.forEach(set => {
                 if(set.completed) {
                     totalSets++;
-                    const w = parseFloat(set.weight) || 0;
-                    const r = parseFloat(set.reps) || 0;
+                    // Tenta limpar strings como "12 reps" para apenas "12" no cálculo
+                    const w = parseFloat(String(set.weight).replace(',','.')) || 0;
+                    const r = parseFloat(String(set.reps).replace(',','.')) || 0;
                     totalVolume += (w * r);
                 }
             });
