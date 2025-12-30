@@ -1,13 +1,13 @@
 :root {
     --bg-color: #000000;
     --card-color: #1C1C1E;
+    --input-bg: #2C2C2E;
     --text-primary: #FFFFFF;
     --text-secondary: #8E8E93;
-    --accent-color: #30D158; /* Apple Fitness Green */
+    --accent-color: #30D158; 
     --danger-color: #FF453A;
     --separator: #38383A;
     --radius: 12px;
-    --btn-radius: 40px;
 }
 
 * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
@@ -15,105 +15,93 @@
 body {
     background-color: var(--bg-color);
     color: var(--text-primary);
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    margin: 0;
-    padding: 0;
-    padding-bottom: 40px; /* Safe area */
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    margin: 0; padding: 0;
+    padding-bottom: 20px;
     min-height: 100vh;
 }
 
-/* Tipografia e Layout */
-h1, h2, h3 { margin: 0; font-weight: 700; }
-h1 { font-size: 34px; letter-spacing: 0.3px; margin-bottom: 20px; }
-h2 { font-size: 22px; margin-bottom: 15px; }
-p { color: var(--text-secondary); line-height: 1.5; font-size: 15px; }
+h1 { font-size: 32px; font-weight: 700; margin: 0 0 20px 0; }
+h2 { font-size: 22px; margin: 0 0 10px 0; }
+h3 { font-size: 18px; margin: 0; }
+p { color: var(--text-secondary); font-size: 15px; margin: 0 0 10px 0; }
 
-.container {
-    padding: 20px;
-    max-width: 600px;
-    margin: 0 auto;
-}
+.container { padding: 20px; max-width: 600px; margin: 0 auto; }
 
-/* Views Management */
+/* Views */
 .view { display: none; animation: fadeIn 0.3s ease; }
-.view.active { display: block; }
+.view.active { display: flex; flex-direction: column; } /* Flex para layout de treino */
 @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
 
-/* UI Components */
-.card {
-    background-color: var(--card-color);
-    border-radius: var(--radius);
-    padding: 20px;
-    margin-bottom: 16px;
-}
+/* Cards & Buttons */
+.card { background-color: var(--card-color); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; }
 
 .btn {
-    background-color: var(--accent-color);
-    color: #000;
-    border: none;
-    width: 100%;
-    padding: 16px;
-    border-radius: var(--radius);
-    font-size: 17px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: opacity 0.2s;
-    text-align: center;
+    background-color: var(--accent-color); color: #000; border: none;
+    width: 100%; padding: 16px; border-radius: var(--radius);
+    font-size: 17px; font-weight: 600; cursor: pointer; text-align: center;
 }
 .btn:active { opacity: 0.7; }
 .btn-secondary { background-color: var(--card-color); color: var(--accent-color); margin-top: 10px; }
-.btn-danger { background-color: rgba(255, 69, 58, 0.15); color: var(--danger-color); }
+.btn-danger { background-color: rgba(255, 69, 58, 0.2); color: var(--danger-color); }
 
 input, select, textarea {
-    width: 100%;
-    background-color: #2C2C2E;
-    border: none;
-    color: white;
-    padding: 14px;
-    border-radius: 8px;
-    font-size: 16px;
-    margin-bottom: 15px;
-    font-family: inherit;
+    width: 100%; background-color: var(--input-bg); border: none;
+    color: white; padding: 14px; border-radius: 8px; font-size: 16px;
+    margin-bottom: 15px; font-family: inherit;
+}
+textarea { height: 100px; resize: none; }
+
+/* Navegação */
+.nav-back { color: var(--accent-color); font-size: 17px; margin-bottom: 15px; display: inline-block; cursor: pointer; }
+
+.nav-footer {
+    display: flex; justify-content: space-between;
+    margin-top: auto; /* Empurra para baixo */
+    padding-top: 20px;
 }
 
-textarea { height: 120px; resize: none; }
-select { -webkit-appearance: none; appearance: none; }
-
-/* Inputs específicos de treino */
-.exercise-row {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
+/* --- ESTILO DE EXECUÇÃO DE TREINO --- */
+.set-row {
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 12px 0;
     border-bottom: 1px solid var(--separator);
-    padding: 15px 0;
 }
-.exercise-row:last-child { border-bottom: none; }
+.set-row:last-child { border-bottom: none; }
 
-.input-group {
-    display: flex;
-    gap: 10px;
-    margin-top: 10px;
+.set-number { width: 30px; font-weight: bold; color: var(--text-secondary); text-align: center;}
+
+/* Checkbox Customizado */
+.check-container {
+    width: 28px; height: 28px;
+    border: 2px solid var(--text-secondary);
+    border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    cursor: pointer; transition: all 0.2s;
 }
-.mini-input {
-    width: 50%;
-    text-align: center;
-    margin-bottom: 0;
+.check-container.checked {
+    background-color: var(--accent-color); border-color: var(--accent-color);
+}
+.check-container svg { display: none; fill: black; width: 18px; height: 18px; }
+.check-container.checked svg { display: block; }
+
+/* Inputs pequenos da linha */
+.input-cell { width: 30%; position: relative; }
+.input-cell input { margin: 0; text-align: center; padding: 10px; }
+.input-label { 
+    position: absolute; right: 10px; top: 50%; transform: translateY(-50%); 
+    color: var(--text-secondary); font-size: 12px; pointer-events: none;
 }
 
-/* Estatísticas */
-.stat-box {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
+/* Botão de Toggle (Peso Corporal) */
+.toggle-btn {
+    background: transparent; border: 1px solid var(--accent-color);
+    color: var(--accent-color); padding: 8px 12px; border-radius: 20px;
+    font-size: 12px; cursor: pointer; margin-bottom: 15px; display: inline-block;
 }
+.toggle-btn.active { background: var(--accent-color); color: black; }
+
+/* Stats */
+.stat-box { display: flex; justify-content: space-between; align-items: baseline; }
 .stat-value { font-size: 32px; font-weight: 700; color: var(--accent-color); }
 .stat-label { font-size: 14px; color: var(--text-secondary); text-transform: uppercase; }
-
-/* Navigation */
-.nav-back {
-    color: var(--accent-color);
-    font-size: 17px;
-    margin-bottom: 20px;
-    display: inline-block;
-    cursor: pointer;
-}
