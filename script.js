@@ -1,7 +1,7 @@
 // --- VARIÁVEIS GLOBAIS ---
 let currentPlan = null;
 let workoutSession = { dayIndex: 0, currentExerciseIndex: 0, data: [] };
-let editingDayIndex = 0; // Para saber qual dia estamos editando
+let editingDayIndex = 0; 
 
 // --- INICIALIZAÇÃO ---
 window.onload = () => {
@@ -30,12 +30,19 @@ function navigateTo(viewId) {
     }
 }
 
-// --- GERAÇÃO DE PROMPT ---
+// --- GERAÇÃO DE PROMPT COMPLETO (ANAMNESE) ---
 function generatePrompt() {
+    // Coleta TUDO
     const goal = document.getElementById('goal').value;
     const days = document.getElementById('days').value;
+    const duration = document.getElementById('duration').value;
+    const equipment = document.getElementById('equipment').value;
+    const gender = document.getElementById('gender').value;
     const level = document.getElementById('level').value;
+    const focus = document.getElementById('focus').value || "Geral";
+    const injuries = document.getElementById('injuries').value || "Nenhuma";
 
+    // Cardápio de Exercícios
     let exerciseMenu = "";
     if (typeof EXERCISE_DB !== 'undefined') {
         exerciseMenu = Object.entries(EXERCISE_DB)
@@ -43,12 +50,21 @@ function generatePrompt() {
             .join("\n");
     }
 
+    // Prompt Rico
     const systemInstruction = `
-    Crie um treino JSON. Objetivo: ${goal}, ${days} dias, Nível ${level}.
-    Use IDs do DB:
+    Aja como Treinador. Crie um treino JSON.
+    ALUNO: ${gender}, ${level}.
+    OBJETIVO: ${goal}.
+    TEMPO: ${duration}.
+    DIAS: ${days}.
+    EQUIPAMENTO: ${equipment} (Respeite estritamente!).
+    LESÕES: ${injuries}.
+    FOCO: ${focus}.
+
+    USE ESTES IDs:
     ${exerciseMenu}
     
-    JSON SCHEMA:
+    SCHEMA JSON:
     {
         "programName": "Nome",
         "description": "Desc",
@@ -57,7 +73,7 @@ function generatePrompt() {
                 "dayName": "Dia 1",
                 "completed": false,
                 "exercises": [
-                    { "id": "1", "name_backup": "Supino", "targetSets": 3, "targetReps": "10", "notes": "" }
+                    { "id": "1", "name_backup": "Supino", "targetSets": 3, "targetReps": "10", "notes": "", "isBodyweight": false }
                 ]
             }
         ]
@@ -101,9 +117,7 @@ function renderHome() {
     list.innerHTML = '';
     
     currentPlan.schedule.forEach((day, idx) => {
-        // Classe 'completed' adiciona o Check Verde Visual
         const completedClass = day.completed ? 'completed' : '';
-        
         list.innerHTML += `
             <div class="card workout-item ${completedClass}">
                 <div class="workout-info" onclick="startWorkout(${idx})">
@@ -122,8 +136,7 @@ function resetApp() {
     if(confirm("Apagar tudo?")) { localStorage.removeItem('fitflow_plan'); location.reload(); }
 }
 
-// --- EDITOR DE DIA (NOVO) ---
-
+// --- EDITOR DE DIA ---
 function openEditor(dayIdx) {
     editingDayIndex = dayIdx;
     renderEditorList();
@@ -134,8 +147,7 @@ function renderEditorList() {
     const list = document.getElementById('editor-list');
     const day = currentPlan.schedule[editingDayIndex];
     list.innerHTML = `<h3>Editando: ${day.dayName}</h3>`;
-
-    if(day.exercises.length === 0) list.innerHTML += "<p>Nenhum exercício.</p>";
+    if(day.exercises.length === 0) list.innerHTML += "<p>Vazio.</p>";
 
     day.exercises.forEach((ex, idx) => {
         const name = getExerciseName(ex);
@@ -143,7 +155,7 @@ function renderEditorList() {
             <div class="editor-item">
                 <div>
                     <div style="font-weight:bold; color:white;">${name}</div>
-                    <div style="font-size:12px; color:#888;">${ex.targetSets} séries x ${ex.targetReps}</div>
+                    <div style="font-size:12px; color:#888;">${ex.targetSets} séries</div>
                 </div>
                 <div class="delete-btn" onclick="removeExercise(${idx})">✕</div>
             </div>
@@ -152,15 +164,14 @@ function renderEditorList() {
 }
 
 function removeExercise(exIdx) {
-    if(confirm("Remover exercício?")) {
+    if(confirm("Remover?")) {
         currentPlan.schedule[editingDayIndex].exercises.splice(exIdx, 1);
         savePlan();
         renderEditorList();
     }
 }
 
-// --- BUSCA E ADIÇÃO (NOVO) ---
-
+// --- BUSCA ---
 function openSearchModal() {
     document.getElementById('search-modal').classList.add('active');
     document.getElementById('search-bar').value = '';
@@ -168,15 +179,12 @@ function openSearchModal() {
     document.getElementById('search-bar').focus();
 }
 
-function closeSearchModal() {
-    document.getElementById('search-modal').classList.remove('active');
-}
+function closeSearchModal() { document.getElementById('search-modal').classList.remove('active'); }
 
 function performSearch() {
     const query = document.getElementById('search-bar').value.toLowerCase();
     const resultsContainer = document.getElementById('search-results');
     resultsContainer.innerHTML = '';
-
     if (query.length < 2) return;
 
     if (typeof EXERCISE_DB !== 'undefined') {
@@ -194,7 +202,6 @@ function performSearch() {
 }
 
 function addExercise(id) {
-    // Adiciona o exercício com configurações padrão
     const newExercise = {
         id: id,
         name_backup: EXERCISE_DB[id].name,
@@ -203,15 +210,13 @@ function addExercise(id) {
         notes: "Adicionado manualmente",
         isBodyweight: false
     };
-
     currentPlan.schedule[editingDayIndex].exercises.push(newExercise);
     savePlan();
     closeSearchModal();
     renderEditorList();
 }
 
-// --- EXECUÇÃO DO TREINO ---
-
+// --- EXECUÇÃO ---
 function startWorkout(dayIdx) {
     workoutSession = { dayIndex: dayIdx, currentExerciseIndex: 0, data: [] };
     navigateTo('view-workout');
@@ -226,11 +231,10 @@ function getExerciseName(exData) {
 function renderActiveExercise() {
     const day = currentPlan.schedule[workoutSession.dayIndex];
     if(!day.exercises || day.exercises.length === 0) {
-        alert("Este dia não tem exercícios. Edite para adicionar.");
+        alert("Dia vazio. Adicione exercícios.");
         navigateTo('view-home');
         return;
     }
-
     const exerciseConfig = day.exercises[workoutSession.currentExerciseIndex];
     const total = day.exercises.length;
     const exName = getExerciseName(exerciseConfig);
@@ -239,7 +243,7 @@ function renderActiveExercise() {
     document.getElementById('progress-bar').style.width = `${progress}%`;
     document.getElementById('step-counter').innerText = `${workoutSession.currentExerciseIndex + 1} / ${total}`;
     
-    document.getElementById('btn-next').innerText = (workoutSession.currentExerciseIndex === total - 1) ? "Finalizar Treino" : "Próximo Exercício";
+    document.getElementById('btn-next').innerText = (workoutSession.currentExerciseIndex === total - 1) ? "Finalizar Treino" : "Próximo";
     document.getElementById('btn-prev').style.visibility = (workoutSession.currentExerciseIndex === 0) ? "hidden" : "visible";
 
     if (!workoutSession.data[workoutSession.currentExerciseIndex]) {
@@ -250,7 +254,6 @@ function renderActiveExercise() {
             isBodyweight: exerciseConfig.isBodyweight || false
         };
     }
-
     const currentSessionData = workoutSession.data[workoutSession.currentExerciseIndex];
 
     const container = document.getElementById('exercise-card-container');
@@ -266,7 +269,7 @@ function renderActiveExercise() {
             </div>
             <div class="notes-box"><p>💡 ${exerciseConfig.notes || 'Sem observações'}</p></div>
             <button class="toggle-btn ${currentSessionData.isBodyweight ? 'active' : ''}" onclick="toggleBodyweight()">
-                ${currentSessionData.isBodyweight ? '◉ Sem Peso (Peso do Corpo)' : '○ Usar Peso'}
+                ${currentSessionData.isBodyweight ? '◉ Peso do Corpo' : '○ Usar Peso'}
             </button>
             <div id="sets-container"></div>
         </div>
@@ -304,7 +307,7 @@ function toggleCheck(setIdx) {
     const exIdx = workoutSession.currentExerciseIndex;
     const set = workoutSession.data[exIdx].sets[setIdx];
     set.completed = !set.completed;
-    renderActiveExercise(); // Re-renderiza para atualizar visual do check
+    renderActiveExercise();
 }
 
 function saveSessionData(setIdx) {
@@ -313,14 +316,14 @@ function saveSessionData(setIdx) {
     workoutSession.data[exIdx].sets[setIdx].reps = document.getElementById(`r-${setIdx}`).value;
 }
 
-// Modal Edição Rápida (Configurações do Exercício)
+// Modal Edição Rápida
 function openEditModal() {
     const day = currentPlan.schedule[workoutSession.dayIndex];
     const config = day.exercises[workoutSession.currentExerciseIndex];
     const modalHTML = `
         <div id="edit-modal" style="position:fixed; top:0; left:0; width:100%; height:100%; background:rgba(0,0,0,0.8); z-index:1000; display:flex; justify-content:center; align-items:center;">
             <div class="card" style="width:90%; max-width:350px; background:#1C1C1E; border:1px solid #333;">
-                <h2>Editar Configs</h2>
+                <h2>Configurar</h2>
                 <label style="font-size:12px; color:#888;">Séries Alvo</label>
                 <input type="number" id="edit-sets" value="${config.targetSets}">
                 <label style="font-size:12px; color:#888;">Repetições</label>
@@ -381,11 +384,9 @@ function finishWorkout() {
             });
         }
     });
-
-    // MARCA O DIA COMO CONCLUÍDO
+    // Marca dia como feito
     currentPlan.schedule[workoutSession.dayIndex].completed = true;
     savePlan();
-
     document.getElementById('summary-volume').innerText = vol.toLocaleString('pt-BR') + ' kg';
     navigateTo('view-summary');
 }

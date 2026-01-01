@@ -41,26 +41,80 @@
         </div>
 
         <div class="card">
-            <label>Objetivo</label>
+            <h3>🎯 Objetivo e Tempo</h3>
+            <label>Objetivo Principal</label>
             <select id="goal">
-                <option value="Hipertrofia">Hipertrofia</option>
-                <option value="Força">Força</option>
-                <option value="Emagrecimento">Emagrecimento</option>
+                <option value="Hipertrofia">Hipertrofia (Massa Muscular)</option>
+                <option value="Força Pura">Força Pura</option>
+                <option value="Emagrecimento">Emagrecimento / Definição</option>
+                <option value="Resistência">Resistência / Cardio</option>
+                <option value="Mobilidade">Mobilidade / Postura</option>
             </select>
-            <label>Dias/Semana</label>
-            <select id="days">
-                <option value="3">3 Dias</option>
-                <option value="4">4 Dias</option>
-                <option value="5">5 Dias</option>
-            </select>
-            <label>Nível</label>
-            <select id="level">
-                <option value="Iniciante">Iniciante</option>
-                <option value="Intermediário">Intermediário</option>
-                <option value="Avançado">Avançado</option>
+
+            <div style="display:flex; gap:10px;">
+                <div style="width:50%;">
+                    <label>Dias/Semana</label>
+                    <select id="days">
+                        <option value="3">3 Dias</option>
+                        <option value="4">4 Dias</option>
+                        <option value="5">5 Dias</option>
+                        <option value="6">6 Dias</option>
+                    </select>
+                </div>
+                <div style="width:50%;">
+                    <label>Duração (min)</label>
+                    <select id="duration">
+                        <option value="30-40">30-40 min</option>
+                        <option value="45-60" selected>45-60 min</option>
+                        <option value="70-90">70-90 min</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <div class="card">
+            <h3>🏋️‍♂️ Equipamento</h3>
+            <label>Onde você treina?</label>
+            <select id="equipment">
+                <option value="Academia Completa">Academia Completa</option>
+                <option value="Academia de Prédio (Básico)">Academia de Prédio (Halteres/Polia)</option>
+                <option value="Em Casa (Apenas Halteres)">Em Casa (Apenas Halteres)</option>
+                <option value="Em Casa (Peso do Corpo)">Em Casa (Sem Equipamento)</option>
+                <option value="Calistenia (Parque)">Parque / Calistenia</option>
             </select>
         </div>
-        <button class="btn" onclick="generatePrompt()">Gerar Prompt</button>
+
+        <div class="card">
+            <h3>👤 Perfil</h3>
+            <div style="display:flex; gap:10px;">
+                <div style="width:50%;">
+                    <label>Gênero</label>
+                    <select id="gender">
+                        <option value="Masculino">Masculino</option>
+                        <option value="Feminino">Feminino</option>
+                    </select>
+                </div>
+                <div style="width:50%;">
+                    <label>Nível</label>
+                    <select id="level">
+                        <option value="Iniciante">Iniciante</option>
+                        <option value="Intermediário" selected>Intermediário</option>
+                        <option value="Avançado">Avançado</option>
+                    </select>
+                </div>
+            </div>
+            <label>Foco Muscular (Opcional)</label>
+            <input type="text" id="focus" placeholder="Ex: Peito superior, Glúteos...">
+        </div>
+
+        <div class="card">
+            <h3>⚠️ Restrições</h3>
+            <label>Lesões ou Dores?</label>
+            <textarea id="injuries" placeholder="Ex: Dor no ombro, joelho estala..." style="height:60px;"></textarea>
+        </div>
+
+        <button class="btn" onclick="generatePrompt()">Gerar Prompt Detalhado</button>
+        <br><br>
     </div>
 
     <div id="view-import" class="view container">
@@ -72,8 +126,8 @@
             <button class="btn btn-secondary" onclick="copyToClipboard()">Copiar</button>
         </div>
         <div class="card">
-            <h2>2. Cole o JSON</h2>
-            <textarea id="json-input" placeholder='Cole aqui...'></textarea>
+            <h2>2. Cole a Resposta JSON</h2>
+            <textarea id="json-input" placeholder='Cole o JSON aqui...'></textarea>
             <button class="btn" onclick="processJSON()">Criar Treino</button>
         </div>
     </div>
@@ -117,12 +171,8 @@
             <span class="nav-back" onclick="navigateTo('view-home')">Voltar</span>
             <h2>Editar Treino</h2>
         </div>
-        
-        <p style="margin-bottom: 20px;">Reorganize ou adicione exercícios para este dia.</p>
-        
-        <div id="editor-list">
-            </div>
-
+        <p style="margin-bottom: 20px;">Adicione ou remova exercícios.</p>
+        <div id="editor-list"></div>
         <button class="btn btn-secondary" onclick="openSearchModal()">+ Adicionar Exercício</button>
     </div>
 
@@ -131,11 +181,21 @@
             <span class="nav-back" onclick="closeSearchModal()">Cancelar</span>
             <h2>Buscar</h2>
         </div>
-        <input type="text" id="search-bar" placeholder="Ex: Supino, Agachamento..." onkeyup="performSearch()">
+        <input type="text" id="search-bar" placeholder="Ex: Supino..." onkeyup="performSearch()">
         <div id="search-results" style="overflow-y:auto; flex:1;"></div>
     </div>
 
     <script src="exercises.js"></script>
     <script src="script.js"></script>
+    
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then(reg => console.log('Offline pronto'))
+                    .catch(err => console.log('Erro SW:', err));
+            });
+        }
+    </script>
 </body>
-</html>
+</html> 
