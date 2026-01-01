@@ -16,68 +16,79 @@ body {
     background-color: var(--bg-color);
     color: var(--text-primary);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    margin: 0; padding: 0;
-    padding-bottom: 20px;
+    margin: 0; padding: 0; padding-bottom: 20px;
     min-height: 100vh;
 }
 
-/* --- CORREÇÃO DA TELA PRETA (SISTEMA DE VIEWS) --- */
-/* Oculta tudo por padrão */
-.view { 
-    display: none; 
-}
-
-/* Força a exibição da tela ativa com !important para vencer qualquer bug */
-.view.active { 
-    display: block !important; 
-    animation: fadeIn 0.3s ease; 
-}
-
-/* Exceção para a tela de treino que precisa ser Flex */
-#view-workout.active {
-    display: flex !important;
-    flex-direction: column;
-}
+/* Views */
+.view { display: none; }
+.view.active { display: block !important; animation: fadeIn 0.3s ease; }
+#view-workout.active { display: flex !important; flex-direction: column; }
+#search-modal.active { display: flex !important; }
 
 @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 
-/* Títulos e Textos */
-h1 { font-size: 30px; font-weight: 700; margin: 0 0 15px 0; }
-h2 { font-size: 20px; margin: 0 0 10px 0; }
-h3 { font-size: 17px; margin: 0; }
-p { color: var(--text-secondary); font-size: 15px; margin: 0 0 10px 0; }
+/* Headers */
+.header-nav { display: flex; align-items: center; justify-content: space-between; margin-bottom: 20px; }
+h1, h2 { font-weight: 700; margin: 0; }
+h1 { font-size: 30px; margin-bottom: 15px; }
+h2 { font-size: 20px; }
+h3 { font-size: 17px; margin-bottom: 10px; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 1px; }
 
 .container { padding: 20px; max-width: 600px; margin: 0 auto; }
-
-/* Cards */
 .card { background-color: var(--card-color); border-radius: var(--radius); padding: 20px; margin-bottom: 16px; }
 
-/* Botão de Iniciar Treino (Lista) */
+/* LISTA DE TREINOS NA HOME */
 .workout-item {
     display: flex; justify-content: space-between; align-items: center;
-    cursor: pointer; transition: background 0.2s;
-    border: 1px solid transparent;
+    position: relative; overflow: hidden;
 }
-.workout-item:active { background-color: #2c2c2e; border-color: var(--separator); }
-.workout-info { flex: 1; }
-.workout-action { margin-left: 15px; }
-.btn-icon {
-    background: var(--accent-color); width: 40px; height: 40px; border-radius: 50%;
-    color: #000; display: flex; align-items: center; justify-content: center;
-    font-size: 14px; font-weight: bold;
+.workout-item.completed { border: 1px solid var(--accent-color); }
+.workout-item.completed::after {
+    content: "✓"; position: absolute; top: 10px; right: 10px;
+    color: var(--accent-color); font-weight: bold; font-size: 20px;
 }
 
-/* Botões Gerais */
+.workout-info { flex: 1; cursor: pointer; }
+.workout-actions { display: flex; gap: 10px; align-items: center; }
+
+/* Botões Home */
+.btn-play {
+    background: var(--accent-color); width: 40px; height: 40px; border-radius: 50%;
+    color: #000; display: flex; align-items: center; justify-content: center;
+    font-size: 14px; font-weight: bold; cursor: pointer;
+}
+.btn-edit-day {
+    background: #333; width: 40px; height: 40px; border-radius: 50%;
+    color: white; display: flex; align-items: center; justify-content: center;
+    font-size: 18px; cursor: pointer;
+}
+
+/* EDITOR DE DIA */
+.editor-item {
+    display: flex; justify-content: space-between; align-items: center;
+    padding: 15px; background: var(--card-color); border-radius: var(--radius);
+    margin-bottom: 10px; border: 1px solid #333;
+}
+.delete-btn { color: var(--danger-color); font-weight: bold; cursor: pointer; padding: 5px 10px; }
+
+/* BUSCA */
+.search-result-item {
+    padding: 15px; border-bottom: 1px solid var(--separator); cursor: pointer;
+}
+.search-result-item:active { background: #1c1c1e; }
+.search-result-title { font-weight: bold; color: white; }
+.search-result-sub { font-size: 13px; color: var(--text-secondary); }
+
+/* Inputs e Botões Gerais */
 .btn {
     background-color: var(--accent-color); color: #000; border: none;
     width: 100%; padding: 16px; border-radius: var(--radius);
     font-size: 17px; font-weight: 600; cursor: pointer; text-align: center;
 }
-.btn:active { opacity: 0.7; }
 .btn-secondary { background-color: var(--card-color); color: var(--accent-color); margin-top: 10px; }
 .btn-danger { background-color: rgba(255, 69, 58, 0.2); color: var(--danger-color); }
 
-/* Inputs */
 input, select, textarea {
     width: 100%; background-color: var(--input-bg); border: none;
     color: white; padding: 14px; border-radius: 8px; font-size: 16px;
@@ -85,42 +96,30 @@ input, select, textarea {
 }
 textarea { height: 100px; resize: none; }
 
-.nav-back { color: var(--accent-color); font-size: 17px; margin-bottom: 15px; display: inline-block; cursor: pointer; }
+.nav-back { color: var(--accent-color); font-size: 17px; cursor: pointer; }
 .nav-footer { display: flex; justify-content: space-between; margin-top: auto; padding-top: 20px; }
 
-/* EXECUÇÃO DO TREINO */
-.exercise-title { color: var(--accent-color); font-size: 26px; margin-bottom: 10px; line-height: 1.2; }
-.meta-tags { display: flex; gap: 10px; margin-bottom: 15px; }
-.tag { background: #333; padding: 6px 12px; border-radius: 6px; font-size: 13px; font-weight: 600; }
+/* Execução */
+.exercise-title { color: var(--accent-color); font-size: 24px; margin-bottom: 5px; line-height: 1.2; flex:1; }
+.meta-tags { display: flex; gap: 8px; margin-bottom: 15px; }
+.tag { background: #333; padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; }
 .notes-box { background: rgba(255,255,255,0.05); padding: 12px; border-radius: 8px; margin-bottom: 15px; font-style: italic; }
 
-.set-row {
-    display: flex; align-items: center; justify-content: space-between;
-    padding: 12px 0; border-bottom: 1px solid var(--separator);
-}
+.set-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 0; border-bottom: 1px solid var(--separator); }
 .set-row:last-child { border-bottom: none; }
-
-.check-container {
-    width: 28px; height: 28px; border: 2px solid var(--text-secondary); border-radius: 50%;
-    display: flex; align-items: center; justify-content: center; cursor: pointer; transition: all 0.2s;
-}
+.check-container { width: 28px; height: 28px; border: 2px solid var(--text-secondary); border-radius: 50%; display: flex; align-items: center; justify-content: center; cursor: pointer; }
 .check-container.checked { background-color: var(--accent-color); border-color: var(--accent-color); }
 .check-container svg { display: none; fill: black; width: 18px; height: 18px; }
 .check-container.checked svg { display: block; }
-
-.set-number { width: 30px; font-weight: bold; color: var(--text-secondary); text-align: center; font-size: 14px; }
-
 .input-cell { width: 32%; position: relative; }
 .input-cell input { margin: 0; text-align: center; padding: 10px 25px 10px 5px; background: #252527; font-size: 15px; }
-.input-cell .disabled-input { opacity: 0.2; pointer-events: none; }
 .input-label { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); color: var(--text-secondary); font-size: 11px; pointer-events: none; }
 
-.toggle-btn {
-    background: transparent; border: 1px solid var(--text-secondary);
-    color: var(--text-secondary); padding: 8px 12px; border-radius: 20px;
-    font-size: 12px; cursor: pointer; margin-bottom: 15px; display: inline-block; transition: all 0.2s;
-}
+.toggle-btn { background: transparent; border: 1px solid var(--text-secondary); color: var(--text-secondary); padding: 8px 12px; border-radius: 20px; font-size: 12px; cursor: pointer; margin-bottom: 15px; display: inline-block; }
 .toggle-btn.active { background: var(--accent-color); color: black; border-color: var(--accent-color); font-weight: bold; }
+
+.edit-btn { background: rgba(255,255,255,0.1); border: none; color: var(--text-secondary); padding: 6px 12px; border-radius: 6px; font-size: 13px; cursor: pointer; margin-left: 10px; height: fit-content; }
+#edit-modal input, #edit-modal textarea { background: #2C2C2E; border: 1px solid #333; color: white; }
 
 .stat-box { display: flex; justify-content: space-between; align-items: baseline; }
 .stat-value { font-size: 32px; font-weight: 700; color: var(--accent-color); }
